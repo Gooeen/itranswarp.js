@@ -68,7 +68,7 @@ let
     }, {});
 
 let
-    WRITE_VIEWS_BACK = 100,
+    WRITE_VIEWS_BACK = 50,
     THEME = config.theme,
     VERSION = process.appVersion,
     PRODUCTION = process.isProduction;
@@ -107,7 +107,7 @@ async function getModel(model) {
 async function updateEntityViews(entity) {
     logger.info('Update views to: ' + entity.views);
     await cache.set(entity.id, 0);
-    await entity.update(['views']);
+    await entity.update({'views': entity.views});
 }
 
 async function getIndexModel() {
