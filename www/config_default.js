@@ -37,7 +37,7 @@ module.exports = {
         // mysql port (default to 3306):
         port: 3306,
         // mysql username:
-        username: 'root',
+        username: 'itranswarp',
         // mysql password:
         password: 'password',
         // database name:
