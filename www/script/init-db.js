@@ -30,7 +30,7 @@ let prompt = [
     '  ALL DATA IN THIS DATABASE WILL BE LOST!',
     '----------------------------------------------------------------------',
     '\x1b[0m',
-    'Enter MySQL root password to continue: '
+    'Enter MySQL root name to continue: '
 ]
 
 function skip() {
@@ -45,7 +45,7 @@ function generatePassword(localId, email, passwd) {
 
 function initTables() {
     // set root for db operation:
-    config.db.username = 'root';
+    config.db.username = info.rootName;
     config.db.password = info.rootPassword;
     config.db.maxConnections = 1;
     config.db.maxIdleTime = 1000;
@@ -83,7 +83,7 @@ function initTables() {
 }
 
 function grantDatabase() {
-    let cmd = `mysql -h ${DB_HOST} -u root --password=${info.rootPassword} -e "GRANT SELECT, INSERT, UPDATE, DELETE ON ${DATABASE}.* TO '${DB_USER}'@'${DB_HOST}' IDENTIFIED BY '${DB_PASS}';"`;
+    let cmd = `mysql -h ${DB_HOST} -u ${info.rootName} --password=${info.rootPassword} -e "GRANT SELECT, INSERT, UPDATE, DELETE ON ${DATABASE}.* TO '${DB_USER}'@'${DB_HOST}' IDENTIFIED BY '${DB_PASS}';"`;
     console.log('Exec: ' + cmd);
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
@@ -96,7 +96,7 @@ function grantDatabase() {
 }
 
 function createDatabase() {
-    let cmd = `mysql -h ${DB_HOST} -u root --password=${info.rootPassword} -e "CREATE DATABASE ${DATABASE};"`;
+    let cmd = `mysql -h ${DB_HOST} -u ${info.rootName} --password=${info.rootPassword} -e "CREATE DATABASE ${DATABASE};"`;
     console.log('Exec: ' + cmd);
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
@@ -109,7 +109,7 @@ function createDatabase() {
 }
 
 function dropDatabase() {
-    let cmd = `mysql -h ${DB_HOST} -u root --password=${info.rootPassword} -e "DROP DATABASE IF EXISTS ${DATABASE};"`;
+    let cmd = `mysql -h ${DB_HOST} -u ${info.rootName} --password=${info.rootPassword} -e "DROP DATABASE IF EXISTS ${DATABASE};"`;
     console.log('Exec: ' + cmd);
     exec(cmd, (error, stdout, stderr) => {
         if (error) {
@@ -121,24 +121,31 @@ function dropDatabase() {
     });
 }
 
-rl.question(prompt.join('\n'), function (rootPassword) {
-    if (rootPassword === '') {
+rl.question(prompt.join('\n'), function (rootName) {
+    if (rootName === '') {
         skip();
     }
-    info.rootPassword = rootPassword;
-    rl.question('Enter admin email: ', function (email) {
-        if (email.trim() === '') {
+    info.rootName = rootName;
+    rl.question(`Enter MySQL ${rootName} password to continue: `, function (rootPassword) {
+        if (rootPassword === '') {
             skip();
         }
-        info.email = email;
-        rl.question('Enter admin password: ', function (adminPassword) {
-            if (adminPassword === '') {
+        info.rootPassword = rootPassword;
+        rl.question('Enter admin email: ', function (email) {
+            if (email.trim() === '') {
                 skip();
             }
-            info.adminPassword = adminPassword;
-            rl.close();
-            console.log('init database...');
-            dropDatabase();
+            info.email = email;
+            rl.question('Enter admin password: ', function (adminPassword) {
+                if (adminPassword === '') {
+                    skip();
+                }
+                info.adminPassword = adminPassword;
+                rl.close();
+                console.log('init database...');
+                dropDatabase();
+            });
         });
     });
+    
 });
